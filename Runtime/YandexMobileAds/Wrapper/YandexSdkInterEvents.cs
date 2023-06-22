@@ -1,5 +1,6 @@
 using System;
 using LittleBitGames.Ads.AdUnits;
+using UnityEngine;
 
 namespace YandexMobileAds.Wrapper
 {
@@ -31,11 +32,13 @@ namespace YandexMobileAds.Wrapper
             
             interstitial.OnInterstitialShown += (s, info) =>
             {
+                Debug.LogError("OnInterstitialShown");
                 OnAdFinished?.Invoke(null, null);
             };
             
             interstitial.OnImpression += (s, info) =>
             {
+                Debug.LogError("OnImpression");
                 OnAdRevenuePaid?.Invoke(null, new AdInfo(info));
             };
         }

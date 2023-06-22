@@ -5,6 +5,7 @@ using LittleBitGames.Ads.AdUnits;
 using LittleBitGames.Ads.Collections.Extensions;
 using LittleBitGames.Environment.Ads;
 using LittleBitGames.Environment.Events;
+using UnityEngine;
 using UnityEngine.Scripting;
 
 namespace YandexMobileAds.Wrapper
@@ -33,10 +34,12 @@ namespace YandexMobileAds.Wrapper
 
         private void Subscribe()
         {
+            Debug.LogError(_adUnits.Count);
             foreach (var adUnit in _adUnits)
             {
                 if (adUnit is YandexInterAd)
                 {
+                    Debug.LogError("IsInterAds");
                     adUnit.Events.OnAdRevenuePaid += delegate(string s, IAdInfo info)
                     {
                         OnAdRevenuePaid(s, info, AdType.Inter);
@@ -45,12 +48,13 @@ namespace YandexMobileAds.Wrapper
                 
                 if (adUnit is YandexRewardAd)
                 {
+                    Debug.LogError("IsRewardAds");
                     adUnit.Events.OnAdRevenuePaid += delegate(string s, IAdInfo info)
                     {
                         OnAdRevenuePaid(s, info, AdType.Rewarded);
                     };
                 }
-                
+                Debug.LogError(adUnit.GetType());
             }
         }
 
@@ -66,6 +70,7 @@ namespace YandexMobileAds.Wrapper
                 Currency,
                 adInfo.Revenue);
 
+            Debug.LogError("OnAdRevenuePaidEVENT");
             OnAdRevenuePaidEvent?.Invoke(adImpressionEvent, adType);
         }
     }

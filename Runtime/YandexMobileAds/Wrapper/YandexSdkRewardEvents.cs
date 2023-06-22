@@ -1,5 +1,6 @@
 using System;
 using LittleBitGames.Ads.AdUnits;
+using UnityEngine;
 
 namespace YandexMobileAds.Wrapper
 {
@@ -32,11 +33,13 @@ namespace YandexMobileAds.Wrapper
             rewardedAd.OnRewardedAdShown += (s, info) =>
             {
                 OnAdFinished?.Invoke(null, null);
+                Debug.LogError("OnRewardedAdShown");
             };
             
             rewardedAd.OnImpression += (s, info) =>
             {
                 OnAdRevenuePaid?.Invoke(null, new AdInfo(info));
+                Debug.LogError("OnImpression");
             };
         }
     }
