@@ -13,8 +13,12 @@ namespace YandexMobileAds.Wrapper
         public YandexInitializer(AdsConfig config) => _config = config;
         
         private bool IsDebugMode => _config.Mode is ExecutionMode.Debug;
+        
+        public bool IsInitialized { get; private set; }
+
         public void Initialize()
         {
+            IsInitialized = true;
             OnMediationInitialized?.Invoke();
         }
     }

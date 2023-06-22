@@ -25,8 +25,15 @@ namespace YandexMobileAds.Wrapper
             _adUnits = adsService.AdUnits;
             
             if (!_adUnits.Validate()) ThrowException();
-            
-            adsService.Initializer.OnMediationInitialized += Subscribe;
+
+            if (adsService.Initializer.IsInitialized)
+            {
+                Subscribe();
+            }
+            else
+            {
+                adsService.Initializer.OnMediationInitialized += Subscribe;
+            }
         }
 
         private static void ThrowException() =>
