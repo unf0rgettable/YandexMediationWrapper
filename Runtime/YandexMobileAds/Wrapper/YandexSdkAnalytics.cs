@@ -67,13 +67,12 @@ namespace YandexMobileAds.Wrapper
 
         private void OnAdRevenuePaid(string adUnitId, IAdInfo adInfo, AdType adType)
         {
-            var ad = _adUnits.FindByKey(adUnitId);
-            
+
             var adImpressionEvent = new DataEventAdImpression(
                 new SdkSource(SdkSourceName),
                 adInfo.NetworkName,
                 adInfo.AdFormat,
-                ad.UnitPlace.StringValue,
+                adInfo.AdUnitIdentifier,
                 Currency,
                 adInfo.Revenue);
 
