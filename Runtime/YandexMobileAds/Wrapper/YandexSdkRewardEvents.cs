@@ -14,33 +14,34 @@ namespace YandexMobileAds.Wrapper
         public event Action<string, IAdInfo> OnAdHidden;
         public event Action<string, IAdErrorInfo, IAdInfo> OnAdDisplayFailed;
         
-        public YandexSdkRewardEvents(RewardedAd rewardedAd)
+        public YandexSdkRewardEvents(RewardedAdLoader rewardedAdLoader)
         {
-            rewardedAd.OnRewardedAdLoaded += (s, info) => OnAdLoaded?.Invoke(null, null);
-            rewardedAd.OnRewardedAdFailedToLoad += (s, info) => OnAdLoadFailed?.Invoke(null, new AdErrorInfo(info));
-            rewardedAd.OnAdClicked += (s, info) => OnAdClicked?.Invoke(null, null);
-            rewardedAd.OnRewardedAdDismissed += (s, info) => OnAdHidden?.Invoke(null, null);
-            rewardedAd.OnRewardedAdFailedToShow +=
-                (s, error) => OnAdDisplayFailed?.Invoke(null, new AdErrorInfo(error), null);
-            
-            rewardedAd.OnRewardedAdDismissed += (s, info) =>
+            rewardedAdLoader.OnAdLoaded += (s, info) =>
             {
+                info.RewardedAd.OnAdClicked += (s, info) => OnAdClicked?.Invoke(null, null);
+                info.RewardedAd.OnAdImpression += (s, info) =>
+                {
+                    Debug.LogError("OnInterstitialShown");
+                    OnAdFinished?.Invoke(null, null);
+                    Debug.LogError("OnImpression");
+                    OnAdRevenuePaid?.Invoke(null, new AdInfo(info));
+                };
+                
+                info.RewardedAd.OnAdDismissed += (s, info) => OnAdHidden?.Invoke(null, null);
+                info.RewardedAd.OnAdFailedToShow +=
+                    (s, error) => OnAdDisplayFailed?.Invoke(null, new AdErrorInfo(error), null);
+                
+                info.RewardedAd.OnAdDismissed += (s, info) =>
+                {
 #if UNITY_EDITOR
-                OnAdFinished?.Invoke(null, null);
+                    OnAdFinished?.Invoke(null, null);
 #endif
+                };
+                
+                OnAdLoaded?.Invoke(null, null);
             };
             
-            rewardedAd.OnRewardedAdShown += (s, info) =>
-            {
-                OnAdFinished?.Invoke(null, null);
-                Debug.LogError("OnRewardedAdShown");
-            };
-            
-            rewardedAd.OnImpression += (s, info) =>
-            {
-                OnAdRevenuePaid?.Invoke(null, new AdInfo(info));
-                Debug.LogError("OnImpression");
-            };
+            rewardedAdLoader.OnAdFailedToLoad += (s, info) => OnAdLoadFailed?.Invoke(null, new AdErrorInfo(info));
         }
     }
 }

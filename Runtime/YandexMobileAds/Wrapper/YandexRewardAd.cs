@@ -6,35 +6,60 @@ namespace YandexMobileAds.Wrapper
 {
     public class YandexRewardAd : AdUnitLogic
     {
-        private readonly RewardedAd _rewardedAd;
+        private readonly RewardedAdLoader _rewardedAdLoader;
+        private readonly string _adUnitId;
+        private AdRequestConfiguration _adRequestConfiguration;
+        private RewardedAd _rewarded;
         
-        public YandexRewardAd(IAdUnitKey key, ICoroutineRunner coroutineRunner) : base(key, GetInterEvent(key, out RewardedAd rewardedAd), coroutineRunner)
+        public YandexRewardAd(IAdUnitKey key, ICoroutineRunner coroutineRunner) : 
+            base(key, GetInterEvent(out RewardedAdLoader rewardedAdLoader), coroutineRunner)
         {
-            _rewardedAd = rewardedAd;
+            _adUnitId = key.StringValue;
+            _rewardedAdLoader = rewardedAdLoader;
+            _rewardedAdLoader.OnAdLoaded += RewardedAdLoaderOnOnAdLoaded;
         }
 
-        public static YandexSdkRewardEvents GetInterEvent(IAdUnitKey key, out RewardedAd rewardedAd)
+        private void RewardedAdLoaderOnOnAdLoaded(object sender, RewardedAdLoadedEventArgs e)
         {
-            rewardedAd = new RewardedAd(key.StringValue);
+            _rewarded = e.RewardedAd;
+        }
 
-            return new YandexSdkRewardEvents(rewardedAd);
+        private static YandexSdkRewardEvents GetInterEvent(out RewardedAdLoader rewardedAdLoader)
+        {
+            rewardedAdLoader = new RewardedAdLoader();
+
+            return new YandexSdkRewardEvents(rewardedAdLoader);
         }
         
         protected override bool IsAdReady()
         {
-            return _rewardedAd.IsLoaded();
+            return _rewarded != null;
         }
 
         protected override void ShowAd()
         {
-            _rewardedAd.Show();
+            _rewarded.OnAdDismissed += (sender, args) =>
+            {
+                _rewarded.Destroy();
+                _rewarded = null;
+            };
+            
+            _rewarded.Show();
         }
 
         public override void Load()
         {
-            AdRequest adRequest = new AdRequest.Builder().Build();
+            //Ограничение для сбора данных пользователя. По умолчанию выключно
+            //TODO: подключить к вопросу о сборе данных
+            //MobileAds.SetAgeRestrictedUser(true);
+
+            if (_rewarded != null)
+            {
+                _rewarded.Destroy();
+            }
             
-            _rewardedAd.LoadAd(adRequest);
+            _rewardedAdLoader.LoadAd(new AdRequestConfiguration.Builder(_adUnitId).Build());
+
         }
     }
 }

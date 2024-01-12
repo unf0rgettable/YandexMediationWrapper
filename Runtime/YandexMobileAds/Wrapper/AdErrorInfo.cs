@@ -11,6 +11,13 @@ namespace YandexMobileAds.Wrapper
             MediatedNetworkErrorCode = -1;
             MediatedNetworkErrorMessage = "Undefined";
         }
+        
+        public AdErrorInfo(AdFailedToLoadEventArgs adFailureEventArgs)
+        {
+            Message = adFailureEventArgs.Message;
+            MediatedNetworkErrorCode = -1;
+            MediatedNetworkErrorMessage = "Undefined";
+        }
 
         public string Message { get; }
         public int MediatedNetworkErrorCode { get; }

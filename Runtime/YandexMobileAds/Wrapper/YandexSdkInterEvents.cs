@@ -14,35 +14,34 @@ namespace YandexMobileAds.Wrapper
         public event Action<string, IAdInfo> OnAdHidden;
         public event Action<string, IAdErrorInfo, IAdInfo> OnAdDisplayFailed;
 
-        public YandexSdkInterEvents(Interstitial interstitial)
+        public YandexSdkInterEvents(InterstitialAdLoader interstitialAdLoader)
         {
-            interstitial.OnInterstitialLoaded += (s, info) => OnAdLoaded?.Invoke(null, null);
-            interstitial.OnInterstitialFailedToLoad += (s, info) => OnAdLoadFailed?.Invoke(null, new AdErrorInfo(info));
-            interstitial.OnAdClicked += (s, info) => OnAdClicked?.Invoke(null, null);
-            interstitial.OnInterstitialDismissed += (s, info) => OnAdHidden?.Invoke(null, null);
-            interstitial.OnInterstitialFailedToShow +=
-                (s, error) => OnAdDisplayFailed?.Invoke(null, new AdErrorInfo(error), null);
-            
-            interstitial.OnInterstitialDismissed += (s, info) =>
+            interstitialAdLoader.OnAdLoaded += (s, info) =>
             {
+                info.Interstitial.OnAdClicked += (s, info) => OnAdClicked?.Invoke(null, null);
+                info.Interstitial.OnAdImpression += (s, info) =>
+                {
+                    Debug.LogError("OnInterstitialShown");
+                    OnAdFinished?.Invoke(null, null);
+                    Debug.LogError("OnImpression");
+                    OnAdRevenuePaid?.Invoke(null, new AdInfo(info));
+                };
+                
+                info.Interstitial.OnAdDismissed += (s, info) => OnAdHidden?.Invoke(null, null);
+                info.Interstitial.OnAdFailedToShow +=
+                    (s, error) => OnAdDisplayFailed?.Invoke(null, new AdErrorInfo(error), null);
+                
+                info.Interstitial.OnAdDismissed += (s, info) =>
+                {
 #if UNITY_EDITOR
-                OnAdFinished?.Invoke(null, null);
+                    OnAdFinished?.Invoke(null, null);
 #endif
+                };
+                
+                OnAdLoaded?.Invoke(null, null);
             };
             
-            interstitial.OnInterstitialShown += (s, info) =>
-            {
-                Debug.LogError("OnInterstitialShown");
-                OnAdFinished?.Invoke(null, null);
-            };
-            
-            interstitial.OnImpression += (s, info) =>
-            {
-                Debug.LogError("OnImpression");
-                OnAdRevenuePaid?.Invoke(null, new AdInfo(info));
-            };
+            interstitialAdLoader.OnAdFailedToLoad += (s, info) => OnAdLoadFailed?.Invoke(null, new AdErrorInfo(info));
         }
-        
-        
     }
 }

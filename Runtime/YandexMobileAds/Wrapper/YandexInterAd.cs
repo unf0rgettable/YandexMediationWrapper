@@ -7,36 +7,58 @@ namespace YandexMobileAds.Wrapper
 {
     public class YandexInterAd : AdUnitLogic
     {
-        private readonly Interstitial _interstitial;
-
+        private readonly InterstitialAdLoader _interstitialAdLoader;
+        private readonly string _adUnitId;
+        private AdRequestConfiguration _adRequestConfiguration;
+        private Interstitial _interstitial;
         public YandexInterAd(IAdUnitKey key, ICoroutineRunner coroutineRunner) : 
-            base(key, GetInterEvent(key, out Interstitial interstitial), coroutineRunner)
+            base(key, GetInterEvent(out InterstitialAdLoader interstitial), coroutineRunner)
         {
-            _interstitial = interstitial;
+            _adUnitId = key.StringValue;
+            _interstitialAdLoader = interstitial;
+            _interstitialAdLoader.OnAdLoaded += InterstitialAdLoaderOnOnAdLoaded;
         }
 
-        public static YandexSdkInterEvents GetInterEvent(IAdUnitKey key, out Interstitial interstitial)
+        private static YandexSdkInterEvents GetInterEvent(out InterstitialAdLoader interstitial)
         {
-            interstitial = new Interstitial(key.StringValue);
-
+            interstitial = new InterstitialAdLoader();
+            
             return new YandexSdkInterEvents(interstitial);
         }
 
         protected override bool IsAdReady()
         {
-            return _interstitial.IsLoaded();
+            return _interstitial != null;
         }
 
         protected override void ShowAd()
         {
+            _interstitial.OnAdDismissed += (sender, args) =>
+            {
+                _interstitial.Destroy();
+                _interstitial = null;
+            };
+            
             _interstitial.Show();
         }
 
         public override void Load()
         {
-            AdRequest adRequest = new AdRequest.Builder().Build();
+            //Ограничение для сбора данных пользователя. По умолчанию выключно
+            //TODO: подключить к вопросу о сборе данных
+            //MobileAds.SetAgeRestrictedUser(true);
+
+            if (_interstitial != null)
+            {
+                _interstitial.Destroy();
+            }
             
-            _interstitial.LoadAd(adRequest);
+            _interstitialAdLoader.LoadAd(new AdRequestConfiguration.Builder(_adUnitId).Build());
+        }
+
+        private void InterstitialAdLoaderOnOnAdLoaded(object sender, InterstitialAdLoadedEventArgs e)
+        {
+            _interstitial = e.Interstitial;
         }
     }
 }

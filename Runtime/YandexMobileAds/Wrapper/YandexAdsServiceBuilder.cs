@@ -40,6 +40,7 @@ namespace YandexMobileAds.Wrapper
         public void BuildRewardedAdUnit() =>
             _rewarded = _adUnitsFactory.CreateRewardedAdUnit();
 
-        public IAdsService GetResult() => new AdsService(_initializer, _inter, _rewarded);
+        //заглушил баннер!!!
+        public IAdsService GetResult() => new AdsService(_initializer, _inter, _rewarded, null);
     }
 }
