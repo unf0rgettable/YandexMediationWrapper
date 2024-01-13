@@ -24,12 +24,15 @@ namespace YandexMobileAds.Wrapper
                     Debug.LogError("OnInterstitialShown");
                     OnAdFinished?.Invoke(null, null);
                     Debug.LogError("OnImpression");
-                    OnAdRevenuePaid?.Invoke(null, new AdInfo(info));
+                    OnAdRevenuePaid?.Invoke(null, info != null ? new AdInfo(info) : null);
                 };
                 
                 info.Interstitial.OnAdDismissed += (s, info) => OnAdHidden?.Invoke(null, null);
                 info.Interstitial.OnAdFailedToShow +=
-                    (s, error) => OnAdDisplayFailed?.Invoke(null, new AdErrorInfo(error), null);
+                    (s, error) =>
+                    {
+                        OnAdDisplayFailed?.Invoke(null, error != null ? new AdErrorInfo(error) : null, null);
+                    };
                 
                 info.Interstitial.OnAdDismissed += (s, info) =>
                 {
@@ -41,7 +44,10 @@ namespace YandexMobileAds.Wrapper
                 OnAdLoaded?.Invoke(null, null);
             };
             
-            interstitialAdLoader.OnAdFailedToLoad += (s, info) => OnAdLoadFailed?.Invoke(null, new AdErrorInfo(info));
+            interstitialAdLoader.OnAdFailedToLoad += (s, info) =>
+            {
+                OnAdLoadFailed?.Invoke(null, info != null ? new AdErrorInfo(info) : null);
+            };
         }
     }
 }
